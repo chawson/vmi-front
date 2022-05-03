@@ -13,7 +13,25 @@
 1. 准备 Service
     - [tomcat & nginx](tomcat-nginx.yaml)
 1. 安装Ingress Nginx(裸机版)
-    1. 部署Deployment控制器
+    1. 准备镜像
+        ```sh
+        GCR_PREFIX=k8s.gcr.io/ingress-nginx
+        MIRROR_LOCATION=registry.cn-hangzhou.aliyuncs.com/google_containers
+        
+        # controller镜像
+        CONTROLLER_IMAGE=$MIRROR_LOCATION/nginx-ingress-controller:v1.2.0
+        # certgen镜像
+        WEBHOOK_IMAGE=$MIRROR_LOCATION/kube-webhook-certgen:v1.1.1
+        
+        docker pull $CONTROLLER_IMAGE
+        docker tag $CONTROLLER_IMAGE $GCR_PREFIX/controller:v1.2.0
+        docker rmi $CONTROLLER_IMAGE
+        
+        docker pull $WEBHOOK_IMAGE
+        docker tag $WEBHOOK_IMAGE $GCR_PREFIX/kube-webhook-certgen:v1.1.1
+        docker rmi $WEBHOOK_IMAGE
+        ```
+    3. 部署Deployment控制器
         ```sh
         kubectl apply -f baremetal-deploy.yaml
         ```
