@@ -46,7 +46,7 @@
         ```sh
         # 部署ingress
         kubectl apply -f ingress-https.yaml
-        # 查看端口转发 (未指定nodePort, 观察到80:30344/TCP,443:31786/TCP)
+        # 查看端口转发 (未指定nodePort, 观察到80:30144/TCP,443:31786/TCP)
         kubectl get svc -n ingress-nginx
         ```
 1. 物理机访问
