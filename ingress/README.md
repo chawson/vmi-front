@@ -9,7 +9,7 @@
     - 网络插件：kube-flannel
     - ClusterCIDR: 10.244.0.0/16
     - ServiceCIDR: 10.96.0.0/12
-    - [coredns manifest](../coredns/coredns.yaml)
+    - [coredns manifest](../coredns)
 1. 准备 Service
     - [tomcat & nginx](tomcat-nginx.yaml)
 1. 安装Ingress Nginx(裸机版)
