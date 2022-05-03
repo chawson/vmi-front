@@ -31,14 +31,21 @@
         docker tag $WEBHOOK_IMAGE $GCR_PREFIX/kube-webhook-certgen:v1.1.1
         docker rmi $WEBHOOK_IMAGE
         ```
-    3. 部署Deployment控制器
+    1. 部署Deployment控制器
         ```sh
         kubectl apply -f baremetal-deploy.yaml
         ```
-    1. 部署Ingress (HTTP)
+    1. 自签tls证书
+        ```sh
+        # 申请自签证书
+        openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/C=CN/ST=BJ/L=BJ/O=nginx/CN=libire.com"
+        # 创建k8s证书
+        kubectl create secret tls ingress-https-secret --key tls.key --cert tls.crt
+        ```
+    3. 部署Ingress (HTTPS)
         ```sh
         # 部署ingress
-        kubectl apply -f ingress-http.yaml
+        kubectl apply -f ingress-https.yaml
         # 查看端口转发 (未指定nodePort, 观察到80:30344/TCP)
         kubectl get svc -n ingress-nginx
         ```
