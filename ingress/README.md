@@ -42,11 +42,11 @@
         # 创建k8s证书
         kubectl create secret tls ingress-https-secret --key tls.key --cert tls.crt
         ```
-    3. 部署Ingress (HTTPS)
+    1. 部署Ingress (HTTPS)
         ```sh
         # 部署ingress
         kubectl apply -f ingress-https.yaml
-        # 查看端口转发 (未指定nodePort, 观察到80:30344/TCP)
+        # 查看端口转发 (未指定nodePort, 观察到80:30344/TCP,443:31786/TCP)
         kubectl get svc -n ingress-nginx
         ```
 1. 物理机访问
@@ -55,10 +55,12 @@
         192.168.122.100 nginx.libire.com
         192.168.122.100 tomcat.libire.com
         ```
-    2. 浏览器域名访问
+    1. 浏览器域名访问
         ```txt
         # 能看到Nginx Welcome
-        nginx.libire.com:30144 
+        http://nginx.libire.com:30144
+        https://nginx.libire.com:31786
         # 能看到Tomcat主页
-        tomcat.libire.com：30144
+        http://tomcat.libire.com：30144
+        https://tomcat.libire.com:31786
         ```
