@@ -7,6 +7,11 @@ metadata:
     name: tomcat-nginx-ingress
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+      - nginx.libire.com
+      - tomcat.libire.com
+      secretName: ingress-https-secret
   rules:
   - host: nginx.libire.com
     http:
