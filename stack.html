@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>堆栈系列</title>
+    <link href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/solarized-light.min.css" rel="stylesheet">
+</head>
+<body>
+<h2>汇编解释栈内存溢出</h2>
+<pre>
+<code class="bash">
+#bash脚本
+#文件名
+asmfile=stack
+#汇编
+nasm -g -felf64 -o ${asmfile}.o ${asmfile}.asm
+#链接
+ld -m elf_x86_64 -o $asmfile ${asmfile}.o
+#执行
+./$asmfile
+</code>
+</pre>
+<h4>ASM代码</h4>
+<iframe src="javascript:void(0)" id="iframe" style="display:none"></iframe>
+<pre><code class="asm" id="code" data-file="./stack.asm"></code></pre>
+<script src="https://cdn.staticfile.org/highlight.js/10.0.0/highlight.min.js"></script>
+<script src="high-page.js"></script>
+<script>
+  const code = document.querySelector('.bash')
+  code.innerHTML = hljs.highlight('sh', code.innerHTML).value
+</script>
+</body>
+</html>
