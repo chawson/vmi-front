@@ -228,7 +228,7 @@ execDeploy() {
             bzip2)
                 tarFileFormat="j"
             ;;
-            posix|pax|gun)
+            posix|pax|gnu|ustar)
             ;;
             *)
                 echo "Err: -f 【tar解压不支持${specialFile}文件格式】"
