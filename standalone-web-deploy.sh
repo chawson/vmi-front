@@ -36,7 +36,7 @@ needClean=1
 
 # 输出提示
 helpMessage() {
-    echo "用法: ./deploy.sh -r <serverHost> <-p <serverRoot>|-t> [-f <tarFile>] [-d <distDir>] <websvr>"
+    echo "用法: ./deploy.sh -r <serverHost> <-p <serverRoot>|-t> [-f <tarFile>] [-d <distDir>] [--clean] [-F] <websvr>"
     echo "示例:"
     echo -e "\t./deploy.sh -r root@localhost -p \$(pwd) test-deploy"
     echo "参数："
