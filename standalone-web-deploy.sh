@@ -16,10 +16,10 @@ tarFile=""
 # 远程服务器，例如 root@localhost [选项 -r]
 serverHost=""
 
-# 服务器WorkDir, 请以`/`开头和结尾，例如/web/ [选项 -p]
+# 服务器WorkDir, 请以`/`开头和结尾，例如/workspace/ [选项 -p]
 serverRoot=""
 
-# 参数
+# 参数 <websvr>
 deploySvr=""
 
 # 是否使用mock测试效果
@@ -27,6 +27,12 @@ isLocalDeploy=1
 
 # 指定tar文件 
 specialFile=""
+
+# 是否强制部署
+forceDeploy=1
+
+# 是否删除Web项目打包输出目录<distDir>
+needClean=1
 
 # 输出提示
 helpMessage() {
@@ -45,21 +51,27 @@ helpMessage() {
     echo -e "\t-r <serverHost>: 指定远程服务器的ssh登录账号,例如root@localhost"
     echo -e "\t-p <serverRoot>: 指定远程服务器的工作目录绝对路径,例如/workspace/"
     echo -e "\t-t: 在本地测试部署, 存在此选项时-r参数将不被使用"
+    echo -e "\t-F: 忽略支持的合法列表检测<websvr>参数"
+    echo -e "\t--clean: 删除Web项目打包输出目录，-f时忽略本参数"
     echo "帮助:"
     echo -e "\t ./deploy.sh -h"
 }
 
 checkDeploySvr() {
-    success=1
+    # 如果为强制更新，则success直接为0
+    success=$forceDeploy
 
-    for svr in ${supportSvrs[*]};
-    do
-        if [ "$deploySvr" = "$svr" ];
-        then
-            success=0
-            break
-        fi
-    done
+    if [ $forceDeploy -ne 0 ];
+    then
+        for svr in ${supportSvrs[*]};
+        do
+            if [ "$deploySvr" = "$svr" ];
+            then
+                success=0
+                break
+            fi
+        done
+    fi
 
     if [ $success -ne 0 ]
     then
@@ -182,6 +194,12 @@ parseArgs() {
             -t)
                 isLocalDeploy=0
             ;;
+            -F)
+                forceDeploy=0
+            ;;
+            --clean)
+                needClean=0
+            ;;
             --)
                 shift
                 break
@@ -208,7 +226,11 @@ execDeploy() {
     then
         checkDistDir
         echo "压缩dist目录"
-        tar -cJf $deploySvr.txz -C $distDir . --remove-files
+        tar -cJf $deploySvr.txz -C $distDir .
+        if [ $needClean -eq 0 ];
+        then
+            rm -rf $distDir
+        fi
         specialFile="$deploySvr.txz"
         tarFileFormat="J"
     else
@@ -237,8 +259,6 @@ execDeploy() {
         esac
     fi
 
-    
-        
     execBin="bash"
 
     if [ $isLocalDeploy -ne 0 ];
@@ -265,47 +285,31 @@ EOF
     $execBin <<-EOF
     set -e
     cd $serverRoot
-    deploySupportSvr="${supportSvrs[*]}"
     
-    success=1
-
-    for svr in \$deploySupportSvr;
-    do
-        if [ \$svr == "$deploySvr" ];
-        then
-            success=0
-            break
-        fi
-    done
-    
-    if [ \$success -eq 0 ];
+    if [ -d ./$deploySvr ];
     then
-        if [ -d ./$deploySvr ];
+        filesCount=\$(ls ./$deploySvr | wc -w)
+        if [ \$filesCount -gt 0 ];
         then
-            filesCount=\$(ls ./$deploySvr | wc -w)
-            if [ \$filesCount -gt 0 ];
+            tar -cJf $deploySvr.bak.txz -C ./$deploySvr/ .
+            rm -rf ./$deploySvr
+            if [ \$? -ne 0 ];
             then
-                tar -cJf $deploySvr.bak.txz -C ./$deploySvr/ . --remove-files
-                if [ \$? -ne 0 ];
-                then
-                    echo "备份失败"
-                    exit 2
-                fi
+                echo "备份失败"
+                exit 2
             fi
         fi
-
-        if [ ! -d ./$deploySvr ];
-        then
-            mkdir -p ./$deploySvr
-        fi
-
-        mkdir -p ./$deploySvr
-        tar -"x${tarFileFormat}f" $specialFile -C ./$deploySvr
-        chmod -R 755 ./$deploySvr
-        echo "部署完成"
-    else
-        echo "部署失败，没有配置支持的服务"
     fi
+
+    if [ ! -d ./$deploySvr ];
+    then
+        mkdir -p ./$deploySvr
+    fi
+
+    mkdir -p ./$deploySvr
+    tar -"x${tarFileFormat}f" $specialFile -C ./$deploySvr
+    chmod -R 755 ./$deploySvr
+    echo "部署完成"
     exit
 EOF
 }
