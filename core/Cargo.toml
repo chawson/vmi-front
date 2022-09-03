@@ -1,0 +1,38 @@
+[package]
+name = "core"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen-futures = "0.4.32"
+js-sys = "0.3.59"
+serde_json = "1.0.85"
+[dependencies.web-sys]
+version = "0.3.59"
+features = [
+    "Window",
+    "Document",
+    "Element",
+    "HtmlElement",
+    "HtmlCanvasElement",
+    "CanvasRenderingContext2d",
+    "CssStyleSheet",
+    "Node",
+    "Request",
+    "Response",
+    "RequestInit","RequestMode","Headers"
+]
+[dependencies.serde]
+version = "1.0.144"
+features = ["derive"]
+
+[dependencies.wasm-bindgen]
+version = "0.2.82"
+features = [
+    "serde-serialize"
+]
