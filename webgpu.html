@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="origin-trial" content="AqS9fyK1fLt5f1Bffe3uXLHyCb21lXxiUXLOSWTAlcuSHlAPIRmp2k0hE7WwsS5blKstjf/IQG6XryJ6/yuZ1gIAAABdeyJvcmlnaW4iOiJodHRwczovL2xpYmlyZS5jb206NDQzIiwiZmVhdHVyZSI6IldlYkdQVSIsImV4cGlyeSI6MTY5MTcxMTk5OSwiaXNTdWJkb21haW4iOnRydWV9" >
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        #canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script type="module">
+        async function initWebgpu() {
+          if (!navigator.gpu) {
+              throw new Error();
+          }
+          const adapter = await navigator.gpu.requestAdapter({
+              powerPreference: "low-power"
+          });
+          if (!adapter) {
+              throw new Error();
+          }
+          adapter.features.forEach((k)=>{
+              console.error(k);
+          }
+          );
+          const device = await adapter.requestDevice({});
+          const canvas = document.querySelector("#canvas");
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          const ctx = canvas.getContext("webgpu");
+          if (!ctx) {
+              throw new Error();
+          }
+          const format = navigator.gpu.getPreferredCanvasFormat();
+          ctx.configure({
+              device,
+              format,
+              alphaMode: "opaque"
+          });
+          return {
+              format,
+              device,
+              adapter,
+              ctx
+          };
+      }
+      function initPipeline(device, format) {
+          const vertexShader = device.createShaderModule({
+              code: `
+              @vertex
+              fn main(@builtin(vertex_index) VertexIndex : u32) -> @builtin(position) vec4<f32> {
+                  var pos = array<vec2<f32>, 3>(
+                    vec2<f32>(0.0, 0.5),
+                    vec2<f32>(-0.5, -0.5),
+                    vec2<f32>(0.5, -0.5)
+                  );
+                  return vec4<f32>(pos[VertexIndex], 0.0, 1.0);
+              }
+              `
+          });
+          const fragmentShader = device.createShaderModule({
+              code: `
+                @fragment
+                fn main() -> @location(0) vec4<f32> {
+                    return vec4<f32>(1.0, 0.0, 0.0, 1.0);
+                }
+              `
+          });
+          return device.createRenderPipelineAsync({
+              vertex: {
+                  module: vertexShader,
+                  entryPoint: "main"
+              },
+              fragment: {
+                  module: fragmentShader,
+                  entryPoint: "main",
+                  targets: [{
+                      format
+                  }]
+              },
+              primitive: {
+                  topology: "triangle-list"
+              },
+              layout: "auto"
+          });
+      }
+      async function run() {
+          const {device, format, ctx} = await initWebgpu();
+          const pipeline = await initPipeline(device, format);
+          draw(pipeline, device, ctx);
+      }
+      function draw(pipeline, device, ctx) {
+          const encoder = device.createCommandEncoder();
+          const renderPass = encoder.beginRenderPass({
+              colorAttachments: [{
+                  view: ctx.getCurrentTexture().createView(),
+                  clearValue: {
+                      r: 0,
+                      g: 0,
+                      b: 0,
+                      a: 1
+                  },
+                  loadOp: "clear",
+                  storeOp: "store"
+              }]
+          });
+          renderPass.setPipeline(pipeline);
+          renderPass.draw(3);
+          renderPass.end();
+          const buffer = encoder.finish();
+          device.queue.submit([buffer]);
+      }
+      run();
+    </script>
+</body>
+</html>
